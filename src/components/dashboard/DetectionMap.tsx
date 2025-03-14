@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,13 +16,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
+import { debounce } from 'lodash';
 
 const DetectionMap = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sliderValue, setSliderValue] = useState(50);
   const [mapLayer, setMapLayer] = useState("satellite");
   const beforeImageRef = useRef<HTMLDivElement>(null);
-  const afterImageRef = useRef<HTMLDivElement>(null);
   
   // Simulate loading
   useEffect(() => {
@@ -33,15 +33,30 @@ const DetectionMap = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Optimized slider update with debounce to prevent laggy UI
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const updateSlider = useCallback(
+    debounce((value: number) => {
+      if (beforeImageRef.current) {
+        beforeImageRef.current.style.width = `${value}%`;
+      }
+    }, 5), // 5ms debounce time - just enough to batch updates without noticeable delay
+    [beforeImageRef]
+  );
+
   // Handle slider change
   const handleSliderChange = (value: number[]) => {
     const newValue = value[0];
     setSliderValue(newValue);
-    
-    if (beforeImageRef.current) {
-      beforeImageRef.current.style.width = `${newValue}%`;
-    }
+    updateSlider(newValue);
   };
+
+  // Apply initial width
+  useEffect(() => {
+    if (beforeImageRef.current && !isLoading) {
+      beforeImageRef.current.style.width = `${sliderValue}%`;
+    }
+  }, [isLoading, sliderValue]);
 
   return (
     <div className="bg-white dark:bg-card rounded-xl shadow-sm border animate-fade-in-up">
@@ -76,7 +91,10 @@ const DetectionMap = () => {
             <div className="relative w-full h-full">
               {/* After image (newer date) - Full width */}
               <div className="absolute inset-0 w-full h-full bg-cover bg-center"
-                   style={{ backgroundImage: "url('https://images.unsplash.com/photo-1569974498991-d3c12a504f95?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')" }}>
+                   style={{ 
+                     backgroundImage: "url('https://images.unsplash.com/photo-1569974498991-d3c12a504f95?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')",
+                     willChange: 'transform' // Hardware acceleration hint
+                   }}>
                 <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                   After: Dec 2023
                 </div>
@@ -85,11 +103,13 @@ const DetectionMap = () => {
               {/* Before image (older date) - Width controlled by slider */}
               <div 
                 ref={beforeImageRef}
-                className="absolute inset-0 h-full bg-cover bg-center transition-all duration-100"
+                className="absolute inset-0 h-full bg-cover bg-center transition-transform"
                 style={{ 
                   width: `${sliderValue}%`, 
                   backgroundImage: "url('https://images.unsplash.com/photo-1552980963-0a1b488314b8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')",
-                  borderRight: '2px solid white'
+                  borderRight: '2px solid white',
+                  willChange: 'width', // Hardware acceleration hint
+                  transform: 'translateZ(0)' // Force GPU acceleration
                 }}
               >
                 <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
@@ -102,7 +122,8 @@ const DetectionMap = () => {
                 className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize"
                 style={{ 
                   left: `${sliderValue}%`, 
-                  transform: 'translateX(-50%)',
+                  transform: 'translateX(-50%) translateZ(0)', // Force GPU acceleration
+                  willChange: 'left', // Hardware acceleration hint
                   zIndex: 10
                 }}
               >
