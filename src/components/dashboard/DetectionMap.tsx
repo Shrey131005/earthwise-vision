@@ -24,14 +24,31 @@ const DetectionMap = () => {
   const [mapLayer, setMapLayer] = useState("satellite");
   const beforeImageRef = useRef<HTMLDivElement>(null);
   
+  // Image paths - ensure these are correct
+  const beforeImagePath = '/lovable-uploads/f8903f80-f69a-4aeb-9470-a52cfc5e6981.png';
+  const afterImagePath = '/lovable-uploads/674dd430-2be7-4f5e-8498-d312c97a26c5.png';
+  
   // Simulate loading
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1800);
-
-    return () => clearTimeout(timer);
-  }, []);
+    // Preload images to ensure they're in the browser cache
+    const preloadImages = () => {
+      const beforeImg = new Image();
+      beforeImg.src = beforeImagePath;
+      
+      const afterImg = new Image();
+      afterImg.src = afterImagePath;
+      
+      // Set loading to false when both images are loaded
+      Promise.all([
+        new Promise(resolve => { beforeImg.onload = resolve; }),
+        new Promise(resolve => { afterImg.onload = resolve; })
+      ]).then(() => {
+        setTimeout(() => setIsLoading(false), 500); // Small delay for smooth transition
+      });
+    };
+    
+    preloadImages();
+  }, [beforeImagePath, afterImagePath]);
 
   // Optimized slider update with debounce to prevent laggy UI
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,9 +107,11 @@ const DetectionMap = () => {
             {/* Image comparison container */}
             <div className="relative w-full h-full">
               {/* After image (newer date) - Full width */}
-              <div className="absolute inset-0 w-full h-full bg-cover bg-center"
+              <div className="absolute inset-0 w-full h-full"
                    style={{ 
-                     backgroundImage: "url('/lovable-uploads/674dd430-2be7-4f5e-8498-d312c97a26c5.png')",
+                     backgroundImage: `url(${afterImagePath})`,
+                     backgroundSize: 'cover',
+                     backgroundPosition: 'center',
                      willChange: 'transform' // Hardware acceleration hint
                    }}>
                 <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
@@ -103,10 +122,12 @@ const DetectionMap = () => {
               {/* Before image (older date) - Width controlled by slider */}
               <div 
                 ref={beforeImageRef}
-                className="absolute inset-0 h-full bg-cover bg-center transition-transform"
+                className="absolute inset-0 h-full transition-transform"
                 style={{ 
                   width: `${sliderValue}%`, 
-                  backgroundImage: "url('/lovable-uploads/f8903f80-f69a-4aeb-9470-a52cfc5e6981.png')",
+                  backgroundImage: `url(${beforeImagePath})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
                   borderRight: '2px solid white',
                   willChange: 'width', // Hardware acceleration hint
                   transform: 'translateZ(0)' // Force GPU acceleration
@@ -131,6 +152,17 @@ const DetectionMap = () => {
                   <div className="w-1 h-4 bg-slate-400 rounded-full"></div>
                 </div>
               </div>
+
+              {/* Sample image placeholder for debugging */}
+              {(mapLayer === "debug" || !afterImagePath || !beforeImagePath) && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                  <p className="text-sm bg-white/90 px-3 py-2 rounded shadow">
+                    Image paths:<br/>
+                    Before: {beforeImagePath}<br/>
+                    After: {afterImagePath}
+                  </p>
+                </div>
+              )}
             </div>
             
             {/* Map controls */}

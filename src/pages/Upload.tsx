@@ -1,6 +1,4 @@
-
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -12,7 +10,6 @@ import ChangeDataTable from '@/components/dashboard/ChangeDataTable';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
-// Mock data for the dashboard
 const mockAlerts = [
   {
     id: '1',
@@ -122,7 +119,6 @@ const Upload = () => {
   const [filteredTableData, setFilteredTableData] = useState(mockTableData);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
