@@ -92,7 +92,7 @@ const DetectionMap = () => {
               {/* After image (newer date) - Full width */}
               <div className="absolute inset-0 w-full h-full bg-cover bg-center"
                    style={{ 
-                     backgroundImage: "url('https://images.unsplash.com/photo-1569974498991-d3c12a504f95?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')",
+                     backgroundImage: "url('/lovable-uploads/674dd430-2be7-4f5e-8498-d312c97a26c5.png')",
                      willChange: 'transform' // Hardware acceleration hint
                    }}>
                 <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
@@ -106,7 +106,7 @@ const DetectionMap = () => {
                 className="absolute inset-0 h-full bg-cover bg-center transition-transform"
                 style={{ 
                   width: `${sliderValue}%`, 
-                  backgroundImage: "url('https://images.unsplash.com/photo-1552980963-0a1b488314b8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')",
+                  backgroundImage: "url('/lovable-uploads/f8903f80-f69a-4aeb-9470-a52cfc5e6981.png')",
                   borderRight: '2px solid white',
                   willChange: 'width', // Hardware acceleration hint
                   transform: 'translateZ(0)' // Force GPU acceleration
