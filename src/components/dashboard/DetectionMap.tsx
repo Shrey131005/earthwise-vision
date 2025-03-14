@@ -15,20 +15,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Slider } from '@/components/ui/slider';
 
 const DetectionMap = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [currentMonth, setCurrentMonth] = useState("Dec 2023");
-  const sliderRef = useRef<HTMLInputElement>(null);
+  const [sliderValue, setSliderValue] = useState(50);
+  const [mapLayer, setMapLayer] = useState("satellite");
+  const beforeImageRef = useRef<HTMLDivElement>(null);
+  const afterImageRef = useRef<HTMLDivElement>(null);
   
-  // Simulate data points for the map
-  const dataPoints = [
-    { id: 1, color: 'bg-green-200', position: { top: '60%', left: '35%' }, size: 60 },
-    { id: 2, color: 'bg-red-200', position: { top: '30%', left: '20%' }, size: 50 },
-  ];
-
+  // Simulate loading
   useEffect(() => {
-    // Simulate map loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1800);
@@ -36,11 +33,14 @@ const DetectionMap = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    const months = ["Jan 2023", "Feb 2023", "Mar 2023", "Apr 2023", "May 2023", "Jun 2023", 
-                    "Jul 2023", "Aug 2023", "Sep 2023", "Oct 2023", "Nov 2023", "Dec 2023"];
-    setCurrentMonth(months[value]);
+  // Handle slider change
+  const handleSliderChange = (value: number[]) => {
+    const newValue = value[0];
+    setSliderValue(newValue);
+    
+    if (beforeImageRef.current) {
+      beforeImageRef.current.style.width = `${newValue}%`;
+    }
   };
 
   return (
@@ -48,7 +48,7 @@ const DetectionMap = () => {
       <div className="p-6 border-b">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold">Change Detection Maps</h2>
-          <Select defaultValue="satellite">
+          <Select defaultValue={mapLayer} onValueChange={setMapLayer}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Map Layers" />
             </SelectTrigger>
@@ -62,7 +62,7 @@ const DetectionMap = () => {
         </div>
       </div>
       
-      <div className="relative h-[460px] bg-slate-50">
+      <div className="relative h-[460px] bg-slate-50 overflow-hidden">
         {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center">
@@ -72,32 +72,45 @@ const DetectionMap = () => {
           </div>
         ) : (
           <>
-            {/* Map background with radial grid */}
-            <div 
-              className="absolute inset-0 bg-[radial-gradient(circle,_transparent_20%,_#f8f9fa_20%,_#f8f9fa_21%,_transparent_21%),_radial-gradient(circle,_transparent_20%,_#f8f9fa_20%,_#f8f9fa_21%,_transparent_21%)] bg-[length:40px_40px] opacity-40"
-              style={{ backgroundPosition: "0 0, 20px 20px" }}
-            ></div>
-            
-            {/* Central indicator */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-4 border-slate-200 flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full border-2 border-slate-200"></div>
-              <div className="absolute w-8 h-8 rounded-full bg-white shadow-md"></div>
-            </div>
-            
-            {/* Data points */}
-            {dataPoints.map((point) => (
+            {/* Image comparison container */}
+            <div className="relative w-full h-full">
+              {/* After image (newer date) - Full width */}
+              <div className="absolute inset-0 w-full h-full bg-cover bg-center"
+                   style={{ backgroundImage: "url('https://images.unsplash.com/photo-1569974498991-d3c12a504f95?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')" }}>
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  After: Dec 2023
+                </div>
+              </div>
+              
+              {/* Before image (older date) - Width controlled by slider */}
               <div 
-                key={point.id}
-                className={`absolute rounded-full ${point.color} transition-all duration-300 animate-pulse-subtle`}
+                ref={beforeImageRef}
+                className="absolute inset-0 h-full bg-cover bg-center transition-all duration-100"
                 style={{ 
-                  top: point.position.top, 
-                  left: point.position.left,
-                  width: point.size,
-                  height: point.size,
-                  transform: 'translate(-50%, -50%)'
+                  width: `${sliderValue}%`, 
+                  backgroundImage: "url('https://images.unsplash.com/photo-1552980963-0a1b488314b8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')",
+                  borderRight: '2px solid white'
                 }}
-              />
-            ))}
+              >
+                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  Before: Jan 2023
+                </div>
+              </div>
+              
+              {/* Slider handle */}
+              <div 
+                className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize"
+                style={{ 
+                  left: `${sliderValue}%`, 
+                  transform: 'translateX(-50%)',
+                  zIndex: 10
+                }}
+              >
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center">
+                  <div className="w-1 h-4 bg-slate-400 rounded-full"></div>
+                </div>
+              </div>
+            </div>
             
             {/* Map controls */}
             <div className="absolute right-4 top-4 flex flex-col space-y-2">
@@ -144,28 +157,21 @@ const DetectionMap = () => {
         )}
       </div>
 
-      {/* Time slider */}
+      {/* Slider control */}
       <div className="p-4 border-t">
-        <div className="flex items-center justify-between">
-          <Button size="sm" variant="ghost">
-            <span className="text-sm">Jan 2023</span>
-          </Button>
-          
-          <div className="flex-1 mx-4">
-            <input
-              ref={sliderRef}
-              type="range"
-              min="0"
-              max="11"
-              defaultValue="11"
-              className="w-full accent-primary"
-              onChange={handleSliderChange}
-            />
-          </div>
-
-          <Button size="sm" variant="ghost">
-            <span className="text-sm">{currentMonth}</span>
-          </Button>
+        <div className="flex items-center px-2">
+          <Slider
+            value={[sliderValue]}
+            onValueChange={handleSliderChange}
+            min={0}
+            max={100}
+            step={1}
+            className="w-full"
+          />
+        </div>
+        <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+          <div>Jan 2023</div>
+          <div>Dec 2023</div>
         </div>
       </div>
     </div>

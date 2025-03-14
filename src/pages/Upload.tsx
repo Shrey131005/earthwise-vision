@@ -159,7 +159,9 @@ const Upload = () => {
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-background">
-      <div className="sticky top-0 z-50 bg-white dark:bg-background border-b">
+      <Navbar />
+      
+      <div className="sticky top-0 z-40 bg-white dark:bg-background border-b mt-16">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
           <h1 className="text-xl font-bold">GIS Change Detection Dashboard</h1>
           <div className="flex items-center space-x-4">
