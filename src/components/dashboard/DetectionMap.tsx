@@ -30,9 +30,9 @@ const DetectionMap = () => {
   const beforeImageRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // Use actual placeholder images from Unsplash instead of uploaded images
-  const beforeImagePath = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1500&q=80';
-  const afterImagePath = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1500&q=80';
+  // Use the uploaded satellite and analysis images
+  const beforeImagePath = '/lovable-uploads/f902ce43-a499-4d19-a48a-dcccd509ed66.png'; // Satellite image (before)
+  const afterImagePath = '/lovable-uploads/49a2bcd5-1238-4fef-92f0-a461fc981e4c.png'; // Analysis image (after)
   
   // Load images
   useEffect(() => {
@@ -56,7 +56,7 @@ const DetectionMap = () => {
           setIsLoading(false);
           toast({
             title: "Map images loaded",
-            description: "Before and after satellite images have been loaded successfully.",
+            description: "Satellite and analysis images have been loaded successfully.",
           });
         }
       };
@@ -69,7 +69,7 @@ const DetectionMap = () => {
       
       beforeImg.onerror = (e) => {
         console.error("Error loading before image:", e);
-        setLoadError("Failed to load before image. Please check your internet connection.");
+        setLoadError("Failed to load satellite image. Please check if the image path is correct.");
         setIsLoading(false);
       };
       
@@ -81,13 +81,13 @@ const DetectionMap = () => {
       
       afterImg.onerror = (e) => {
         console.error("Error loading after image:", e);
-        setLoadError("Failed to load after image. Please check your internet connection.");
+        setLoadError("Failed to load analysis image. Please check if the image path is correct.");
         setIsLoading(false);
       };
       
-      // Start loading images with cache busting
-      beforeImg.src = `${beforeImagePath}`;
-      afterImg.src = `${afterImagePath}`;
+      // Start loading images with cache busting to ensure fresh load
+      beforeImg.src = `${beforeImagePath}?t=${new Date().getTime()}`;
+      afterImg.src = `${afterImagePath}?t=${new Date().getTime()}`;
       
       // If images are already cached, the onload event might not fire
       // So we check if they're complete already
@@ -169,8 +169,8 @@ const DetectionMap = () => {
               
               <div className="text-sm text-muted-foreground mb-4">
                 <p>Attempted to load:</p>
-                <p className="mt-1">Before: {beforeImagePath}</p>
-                <p className="mt-1">After: {afterImagePath}</p>
+                <p className="mt-1">Satellite: {beforeImagePath}</p>
+                <p className="mt-1">Analysis: {afterImagePath}</p>
               </div>
               
               <Button 
@@ -185,7 +185,7 @@ const DetectionMap = () => {
           <>
             {imagesLoaded ? (
               <div className="relative w-full h-full">
-                {/* After image (newer date) - Full width */}
+                {/* After image (analysis) - Full width */}
                 <div 
                   className="absolute inset-0 w-full h-full"
                   style={{ 
@@ -196,11 +196,11 @@ const DetectionMap = () => {
                   }}
                 >
                   <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    After: Dec 2023
+                    Land Classification Analysis
                   </div>
                 </div>
                 
-                {/* Before image (older date) - Width controlled by slider */}
+                {/* Before image (satellite) - Width controlled by slider */}
                 <div 
                   ref={beforeImageRef}
                   className="absolute inset-0 h-full transition-transform"
@@ -215,7 +215,7 @@ const DetectionMap = () => {
                   }}
                 >
                   <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    Before: Jan 2023
+                    Satellite Imagery
                   </div>
                 </div>
                 
@@ -240,8 +240,8 @@ const DetectionMap = () => {
                   <p className="text-red-500 font-medium">Failed to load images.</p>
                   <div className="mt-2 text-sm text-slate-500">
                     Attempted to load:<br />
-                    Before: {beforeImagePath}<br />
-                    After: {afterImagePath}
+                    Satellite: {beforeImagePath}<br />
+                    Analysis: {afterImagePath}
                   </div>
                   <Button 
                     className="mt-3 w-full" 
@@ -259,8 +259,8 @@ const DetectionMap = () => {
                 <div className="bg-white p-4 rounded-md shadow-md max-w-md">
                   <h3 className="font-medium mb-2">Image Debug Info</h3>
                   <div className="text-xs space-y-1">
-                    <p><strong>Before Image:</strong> {beforeImagePath}</p>
-                    <p><strong>After Image:</strong> {afterImagePath}</p>
+                    <p><strong>Satellite Image:</strong> {beforeImagePath}</p>
+                    <p><strong>Analysis Image:</strong> {afterImagePath}</p>
                     <p><strong>Images Loaded:</strong> {imagesLoaded ? 'Yes' : 'No'}</p>
                     <p><strong>Loading State:</strong> {isLoading ? 'Loading' : 'Completed'}</p>
                     <p><strong>Error:</strong> {loadError || 'None'}</p>
@@ -337,8 +337,8 @@ const DetectionMap = () => {
           />
         </div>
         <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-          <div>Jan 2023</div>
-          <div>Dec 2023</div>
+          <div>Satellite View</div>
+          <div>Land Classification</div>
         </div>
       </div>
     </div>
