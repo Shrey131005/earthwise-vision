@@ -17,21 +17,26 @@ import {
 } from '@/components/ui/tooltip';
 import { Slider } from '@/components/ui/slider';
 import { debounce } from 'lodash';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const DetectionMap = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [sliderValue, setSliderValue] = useState(50);
   const [mapLayer, setMapLayer] = useState("satellite");
   const beforeImageRef = useRef<HTMLDivElement>(null);
   
-  // Image paths - ensure these are correct
-  const beforeImagePath = '/lovable-uploads/f8903f80-f69a-4aeb-9470-a52cfc5e6981.png';
-  const afterImagePath = '/lovable-uploads/674dd430-2be7-4f5e-8498-d312c97a26c5.png';
+  // Use placeholder images as fallbacks
+  const beforeImagePath = '/lovable-uploads/f910e95e-f0e3-44b2-af5f-8764365241f6.png';
+  const afterImagePath = '/lovable-uploads/f910e95e-f0e3-44b2-af5f-8764365241f6.png';
   
   // Load images
   useEffect(() => {
     console.log("Loading images:", beforeImagePath, afterImagePath);
+    setIsLoading(true);
+    setLoadError(null);
     
     // Preload images to ensure they're in the browser cache
     const preloadImages = () => {
@@ -58,7 +63,8 @@ const DetectionMap = () => {
       
       beforeImg.onerror = (e) => {
         console.error("Error loading before image:", e);
-        setIsLoading(false);  // Stop loading even if image fails
+        setLoadError("Failed to load before image. Please check the file path.");
+        setIsLoading(false);
       };
       
       afterImg.onload = () => {
@@ -69,12 +75,13 @@ const DetectionMap = () => {
       
       afterImg.onerror = (e) => {
         console.error("Error loading after image:", e);
-        setIsLoading(false);  // Stop loading even if image fails
+        setLoadError("Failed to load after image. Please check the file path.");
+        setIsLoading(false);
       };
       
-      // Start loading images
-      beforeImg.src = beforeImagePath;
-      afterImg.src = afterImagePath;
+      // Start loading images with cache busting
+      beforeImg.src = `${beforeImagePath}?t=${new Date().getTime()}`;
+      afterImg.src = `${afterImagePath}?t=${new Date().getTime()}`;
       
       // If images are already cached, the onload event might not fire
       // So we check if they're complete already
@@ -110,6 +117,14 @@ const DetectionMap = () => {
     }
   }, [isLoading, sliderValue]);
 
+  // Handle retry button click
+  const handleRetry = () => {
+    setIsLoading(true);
+    setImagesLoaded(false);
+    setLoadError(null);
+    // This will trigger the useEffect to load images again
+  };
+
   return (
     <div className="bg-white dark:bg-card rounded-xl shadow-sm border animate-fade-in-up">
       <div className="p-6 border-b">
@@ -136,6 +151,28 @@ const DetectionMap = () => {
             <div className="flex flex-col items-center">
               <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
               <p className="mt-3 text-sm text-muted-foreground">Loading maps...</p>
+            </div>
+          </div>
+        ) : loadError ? (
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div className="max-w-md w-full">
+              <Alert variant="destructive" className="mb-4">
+                <AlertTitle>Failed to load images</AlertTitle>
+                <AlertDescription>{loadError}</AlertDescription>
+              </Alert>
+              
+              <div className="text-sm text-muted-foreground mb-4">
+                <p>Attempted to load:</p>
+                <p className="mt-1">Before: {beforeImagePath}</p>
+                <p className="mt-1">After: {afterImagePath}</p>
+              </div>
+              
+              <Button 
+                onClick={handleRetry}
+                className="w-full"
+              >
+                Retry
+              </Button>
             </div>
           </div>
         ) : (
@@ -202,7 +239,7 @@ const DetectionMap = () => {
                   </div>
                   <Button 
                     className="mt-3 w-full" 
-                    onClick={() => window.location.reload()}
+                    onClick={handleRetry}
                   >
                     Retry
                   </Button>
@@ -220,15 +257,16 @@ const DetectionMap = () => {
                     <p><strong>After Image:</strong> {afterImagePath}</p>
                     <p><strong>Images Loaded:</strong> {imagesLoaded ? 'Yes' : 'No'}</p>
                     <p><strong>Loading State:</strong> {isLoading ? 'Loading' : 'Completed'}</p>
+                    <p><strong>Error:</strong> {loadError || 'None'}</p>
                     <p><strong>Slider Position:</strong> {sliderValue}%</p>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="mt-3 w-full" 
-                    onClick={() => window.location.reload()}
+                    onClick={handleRetry}
                   >
-                    Reload Page
+                    Reload Images
                   </Button>
                 </div>
               </div>
@@ -289,6 +327,7 @@ const DetectionMap = () => {
             max={100}
             step={1}
             className="w-full"
+            disabled={isLoading || !imagesLoaded}
           />
         </div>
         <div className="flex justify-between mt-2 text-xs text-muted-foreground">
