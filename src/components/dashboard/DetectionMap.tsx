@@ -19,6 +19,7 @@ import { Slider } from '@/components/ui/slider';
 import { debounce } from 'lodash';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from "@/hooks/use-toast";
 
 const DetectionMap = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,10 +28,11 @@ const DetectionMap = () => {
   const [sliderValue, setSliderValue] = useState(50);
   const [mapLayer, setMapLayer] = useState("satellite");
   const beforeImageRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
-  // Use placeholder images as fallbacks
-  const beforeImagePath = '/lovable-uploads/f910e95e-f0e3-44b2-af5f-8764365241f6.png';
-  const afterImagePath = '/lovable-uploads/f910e95e-f0e3-44b2-af5f-8764365241f6.png';
+  // Use actual placeholder images from Unsplash instead of uploaded images
+  const beforeImagePath = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1500&q=80';
+  const afterImagePath = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1500&q=80';
   
   // Load images
   useEffect(() => {
@@ -52,6 +54,10 @@ const DetectionMap = () => {
           console.log("Both images loaded successfully");
           setImagesLoaded(true);
           setIsLoading(false);
+          toast({
+            title: "Map images loaded",
+            description: "Before and after satellite images have been loaded successfully.",
+          });
         }
       };
       
@@ -63,7 +69,7 @@ const DetectionMap = () => {
       
       beforeImg.onerror = (e) => {
         console.error("Error loading before image:", e);
-        setLoadError("Failed to load before image. Please check the file path.");
+        setLoadError("Failed to load before image. Please check your internet connection.");
         setIsLoading(false);
       };
       
@@ -75,13 +81,13 @@ const DetectionMap = () => {
       
       afterImg.onerror = (e) => {
         console.error("Error loading after image:", e);
-        setLoadError("Failed to load after image. Please check the file path.");
+        setLoadError("Failed to load after image. Please check your internet connection.");
         setIsLoading(false);
       };
       
       // Start loading images with cache busting
-      beforeImg.src = `${beforeImagePath}?t=${new Date().getTime()}`;
-      afterImg.src = `${afterImagePath}?t=${new Date().getTime()}`;
+      beforeImg.src = `${beforeImagePath}`;
+      afterImg.src = `${afterImagePath}`;
       
       // If images are already cached, the onload event might not fire
       // So we check if they're complete already
@@ -90,7 +96,7 @@ const DetectionMap = () => {
     };
     
     preloadImages();
-  }, [beforeImagePath, afterImagePath]);
+  }, [beforeImagePath, afterImagePath, toast]);
 
   // Optimized slider update with debounce to prevent laggy UI
   // eslint-disable-next-line react-hooks/exhaustive-deps
