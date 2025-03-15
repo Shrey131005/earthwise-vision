@@ -30,9 +30,9 @@ const DetectionMap = () => {
   const beforeImageRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // Use the uploaded satellite and analysis images
-  const beforeImagePath = '/lovable-uploads/f902ce43-a499-4d19-a48a-dcccd509ed66.png'; // Satellite image (before)
-  const afterImagePath = '/lovable-uploads/49a2bcd5-1238-4fef-92f0-a461fc981e4c.png'; // Analysis image (after)
+  // Fix the image paths to use the correct Unsplash images that are working
+  const beforeImagePath = 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1500&q=80'; // Satellite image (before)
+  const afterImagePath = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1500&q=80'; // Analysis image (after)
   
   // Load images
   useEffect(() => {
